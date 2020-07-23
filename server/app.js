@@ -43,7 +43,7 @@ app.post('/url', (req, res) => {
 
   if (data.slug.length > 0) {
     console.log("slug");
-    slug = data.slug;
+    slug = data.slug.replace("http://", "");
   } else {
     slug = randomstring.generate({
       length: 13,
