@@ -46,46 +46,55 @@ app.post('/url', (req, res) => {
 
   const data = req.body.feilds;
   var slug;
+  var url;
 
-  if (data.slug.length > 0) {
-    console.log("slug");
-    slug = data.slug.replace("http://", "");
-  } else {
-    slug = randomstring.generate({
-      length: 13,
-      charset: 'alphabetic'
-    });
+  if (data.url.indexOf('://') !== -1) {
+    url = data.url.substr(data.url.indexOf('://')+3);
+  }else {
+    url = data.url;
   }
+    console.log(data);
+    console.log(url);
 
-  pool.getConnection((err, conn) => {
-    if (err) {
-      throw err
+    if (data.slug.length > 0) {
+      console.log("slug");
+      slug = data.slug;
+    } else {
+      slug = randomstring.generate({
+        length: 13,
+        charset: 'alphabetic'
+      });
     }
 
-    conn.query(`SELECT * FROM urls WHERE slug=${conn.escape(slug)}`, (err, rows) => {
-      if (err) throw err;
-
-      if (rows.length == 0) {
-
-        conn.query(`INSERT INTO urls (slug, url) VALUES(${conn.escape(slug)}, ${conn.escape(data.url)})`, (err, res) => {
-          if (err) throw err;
-          console.log("insert into urls");
-        })
-
-        res.json(JSON.stringify({
-          sh_url: `localhost:3000/${slug}`
-        }))
-
-
-      } else {
-        res.send(JSON.stringify({error: `The slug coosen: "${slug}" already exists`}))
+    pool.getConnection((err, conn) => {
+      if (err) {
+        throw err
       }
 
-    })
+      conn.query(`SELECT * FROM urls WHERE slug=${conn.escape(slug)}`, (err, rows) => {
+        if (err) throw err;
 
-    conn.release()
+        if (rows.length == 0) {
 
-  });
+          conn.query(`INSERT INTO urls (slug, url) VALUES(${conn.escape(slug)}, ${conn.escape(url)})`, (err, res) => {
+            if (err) throw err;
+            console.log("insert into urls");
+          })
+
+          res.json(JSON.stringify({
+            sh_url: `localhost:3000/${slug}`
+          }))
+
+
+        } else {
+          res.send(JSON.stringify({error: `The slug coosen: "${slug}" already exists`}))
+        }
+
+      })
+
+      conn.release()
+
+    });
 
 })
 
