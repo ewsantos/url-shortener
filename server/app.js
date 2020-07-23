@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 
-app.use(express.static(path.resolve(`${__dirname}/../client`)))
+app.use('/static', express.static(path.resolve(`${__dirname}/../client/static`)))
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -32,6 +32,12 @@ const pool = mysql.createPool({
   multipleStatements: true
 });
 
+
+//homepage
+
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(`${__dirname}/../client/index.html`));
+})
 
 
 //Shortens Url
@@ -95,7 +101,7 @@ app.get('/:slug', (req, res) => {
       if (rows.length == 1) {console.log(rows);
         res.redirect(`http://${rows[0].url}`)
       }else {
-        res.send(`<h3>ERROR 404 Not found</h3>`);
+          res.sendFile(path.resolve(`${__dirname}/../client/error/404.html`))
       }
 
     })
@@ -105,4 +111,10 @@ app.get('/:slug', (req, res) => {
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Listening at http://localhost:${port}`);
+})
+
+process.on('uncaughtException', (err) => {
+    res.sendFile(path.resolve(`${__dirname}/../client/error/503.html`))
+    throw err;
+    process.exit(1) //mandatory (as per the Node docs)
 })
